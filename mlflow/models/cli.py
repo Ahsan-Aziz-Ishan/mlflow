@@ -103,7 +103,7 @@ def serve(
         env_manager = env_manager or _EnvManager.VIRTUALENV
 
     return get_flavor_backend(
-        model_uri, env_manager=env_manager, workers=workers, install_mlflow=install_mlflow
+        model_uri, env_manager=env_manager, workers=workers, install_mlflow=False
     ).serve(
         model_uri=model_uri, port=port, host=host, timeout=timeout, enable_mlserver=enable_mlserver
     )
@@ -143,7 +143,7 @@ def predict(
     """
     env_manager = env_manager or _EnvManager.VIRTUALENV
     return get_flavor_backend(
-        model_uri, env_manager=env_manager, install_mlflow=install_mlflow
+        model_uri, env_manager=env_manager, install_mlflow=False
     ).predict(
         model_uri=model_uri,
         input_path=input_path,
@@ -168,7 +168,7 @@ def prepare_env(
     """
     env_manager = env_manager or _EnvManager.VIRTUALENV
     return get_flavor_backend(
-        model_uri, env_manager=env_manager, install_mlflow=install_mlflow
+        model_uri, env_manager=env_manager, install_mlflow=False
     ).prepare_env(model_uri=model_uri)
 
 
@@ -204,7 +204,7 @@ def generate_dockerfile(
             model_uri,
             output_directory,
             mlflow_home=mlflow_home,
-            install_mlflow=install_mlflow,
+            install_mlflow=False,
             enable_mlserver=enable_mlserver,
         )
         _logger.info("Generated Dockerfile in directory %s", output_directory)
@@ -272,6 +272,6 @@ def build_docker(model_uri, name, env_manager, mlflow_home, install_mlflow, enab
         name,
         env_manager=env_manager,
         mlflow_home=mlflow_home,
-        install_mlflow=install_mlflow,
+        install_mlflow=False,
         enable_mlserver=enable_mlserver,
     )
