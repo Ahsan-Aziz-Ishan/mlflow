@@ -25,7 +25,7 @@ for line in sys.stdin:
 
     _logger.info("Parsing input data")
     data = request["data"]
-    data = scoring_server.infer_and_parse_json_input(data, input_schema)
+    # data = scoring_server.infer_and_parse_json_input(data, input_schema)
 
     _logger.info("Making predictions")
     preds = model.predict(data)
