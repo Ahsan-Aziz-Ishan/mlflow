@@ -302,14 +302,14 @@ def dataframe_from_parsed_json(decoded_input, pandas_orient, schema=None):
                 columns=decoded_input.get("columns"),
                 data=decoded_input["data"],
             )
+            return pdf
         except Exception as ex:
             raise MlflowBadScoringInputException(
                 f"Provided dataframe_split field is not a valid dataframe representation in "
                 f"'split' format. Error: '{ex}'"
             )
-    if schema is not None:
-        pdf = cast_df_types_according_to_schema(pdf, schema)
-    return pdf
+    # if schema is not None:
+    #     pdf = cast_df_types_according_to_schema(pdf, schema)
 
 
 def dataframe_from_raw_json(path_or_str, schema=None, pandas_orient: str = "split"):
