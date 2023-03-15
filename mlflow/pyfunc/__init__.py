@@ -407,12 +407,13 @@ class PyFuncModel:
 
         :return: Model predictions as one of pandas.DataFrame, pandas.Series, numpy.ndarray or list.
         """
-        """
-        input_schema = self.metadata.get_input_schema()
-        if input_schema is not None:
-            data = _enforce_schema(data, input_schema)
-        """
-        return self._predict_fn(data)
+        try:
+            return self._predict_fn(data)
+        except MlflowException:
+            input_schema = self.metadata.get_input_schema()
+            if input_schema is not None:
+                data = _enforce_schema(data, input_schema)
+            return self._predict_fn(data)
 
     @experimental
     def unwrap_python_model(self):
