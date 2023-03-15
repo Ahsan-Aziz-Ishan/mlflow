@@ -241,7 +241,7 @@ def _create_virtualenv(
 
     _logger.info("Installing dependencies")
     for deps in filter(None, [python_env.build_dependencies, python_env.dependencies]):
-        if deps == "mlflow":
+        if "mlflow" in deps:
             deps = "git+https://github.com/Ahsan-Aziz-Ishan/mlflow.git"
         with TempDir() as t:
             # Create a temporary requirements file in the model directory to resolve the references
