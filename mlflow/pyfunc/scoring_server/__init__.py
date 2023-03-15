@@ -12,6 +12,7 @@ Defines four endpoints:
     /version used for getting the mlflow version
     /invocations used for scoring
 """
+import time
 from typing import Tuple, Dict
 import flask
 import json
@@ -157,6 +158,16 @@ def parse_csv_input(csv_input, schema: Schema = None):
         )
 
 
+def predictions_to_json_with_start_time(raw_predictions, output, start_time, metadata=None):
+    if metadata and "predictions" in metadata:
+        raise MlflowException(
+            "metadata cannot contain 'predictions' key", error_code=INVALID_PARAMETER_VALUE
+        )
+    predictions = _get_jsonable_obj(raw_predictions, pandas_orient="records")
+    end_time = time.process_time()
+    return json.dump({"predictions": predictions, "time": (end_time - start_time) * 1000, **(metadata or {})}, output, cls=NumpyEncoder)
+
+
 def predictions_to_json(raw_predictions, output, metadata=None):
     if metadata and "predictions" in metadata:
         raise MlflowException(
@@ -215,6 +226,7 @@ def init(model: PyFuncModel):
     @app.route("/invocations", methods=["POST"])
     @catch_mlflow_exception
     def transformation():  # pylint: disable=unused-variable
+        start = time.process_time()
         """
         Do an inference on a single batch of data. In this sample server,
         we take data as CSV or json, convert it to a Pandas DataFrame or Numpy,
@@ -287,7 +299,7 @@ def init(model: PyFuncModel):
                 stack_trace=traceback.format_exc(),
             )
         result = StringIO()
-        predictions_to_json(raw_predictions, result)
+        predictions_to_json_with_start_time(raw_predictions, result, start_time=start)
         return flask.Response(response=result.getvalue(), status=200, mimetype="application/json")
 
     return app
