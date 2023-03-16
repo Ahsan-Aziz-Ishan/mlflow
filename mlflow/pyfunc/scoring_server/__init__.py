@@ -159,15 +159,15 @@ def parse_csv_input(csv_input, schema: Schema = None):
         )
 
 
-def predictions_to_json_with_start_time(raw_predictions, output, start_time, metadata=None):
+def predictions_to_json_with_start_time(raw_predictions, output, time_dict, metadata=None):
     if metadata and "predictions" in metadata:
         raise MlflowException(
             "metadata cannot contain 'predictions' key", error_code=INVALID_PARAMETER_VALUE
         )
     predictions = _get_jsonable_obj(raw_predictions, pandas_orient="records")
-    end_time = time.process_time()
-    return json.dump({"predictions": predictions, "time": (end_time - start_time['start_time']) * 1000,
-                      "start_time": start_time['start_date_time'], "end_time": str(datetime.datetime.now()),
+    time_dict["end_time"] = str(datetime.datetime.now())
+    return json.dump({"predictions": predictions,
+                      **time_dict,
                       **(metadata or {})}, output, cls=NumpyEncoder)
 
 
@@ -229,8 +229,7 @@ def init(model: PyFuncModel):
     @app.route("/invocations", methods=["POST"])
     @catch_mlflow_exception
     def transformation():  # pylint: disable=unused-variable
-        start_time =  {
-            "start_time": time.process_time(),
+        time_dict = {
             "start_date_time": str(datetime.datetime.now())
             }
         """
@@ -270,6 +269,7 @@ def init(model: PyFuncModel):
                 status=415,
                 mimetype="text/plain",
             )
+        parse_json_time = time.process_time()
         # Convert from CSV to pandas
         if mime_type == CONTENT_TYPE_CSV:
             data = flask.request.data.decode("utf-8")
@@ -288,7 +288,8 @@ def init(model: PyFuncModel):
                 status=415,
                 mimetype="text/plain",
             )
-
+        time_dict['json_to_pd_time'] = time.process_time() - parse_json_time
+        prediction_time = time.process_time()
         # Do the prediction
         try:
             raw_predictions = model.predict(data)
@@ -304,8 +305,9 @@ def init(model: PyFuncModel):
                 error_code=BAD_REQUEST,
                 stack_trace=traceback.format_exc(),
             )
+        time_dict['prediction_time'] = time.process_time() - prediction_time
         result = StringIO()
-        predictions_to_json_with_start_time(raw_predictions, result, start_time=start_time)
+        predictions_to_json_with_start_time(raw_predictions, result, start_time=time_dict)
         return flask.Response(response=result.getvalue(), status=200, mimetype="application/json")
 
     return app
