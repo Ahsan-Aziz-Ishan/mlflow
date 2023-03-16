@@ -307,7 +307,7 @@ def init(model: PyFuncModel):
             )
         time_dict['prediction_time'] = time.process_time() - prediction_time
         result = StringIO()
-        predictions_to_json_with_start_time(raw_predictions, result, start_time=time_dict)
+        predictions_to_json_with_start_time(raw_predictions, result, time_dict=time_dict)
         return flask.Response(response=result.getvalue(), status=200, mimetype="application/json")
 
     return app
