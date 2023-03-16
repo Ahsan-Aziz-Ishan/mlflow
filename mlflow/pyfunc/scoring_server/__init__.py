@@ -164,7 +164,9 @@ def predictions_to_json_with_start_time(raw_predictions, output, time_dict, meta
         raise MlflowException(
             "metadata cannot contain 'predictions' key", error_code=INVALID_PARAMETER_VALUE
         )
+    raw_prediction_conversion_time = time.process_time()
     predictions = _get_jsonable_obj(raw_predictions, pandas_orient="records")
+    time_dict["raw_prediction_conversion_time"] = ( time.process_time() - raw_prediction_conversion_time) * 1000
     time_dict["end_time"] = str(datetime.datetime.now())
     return json.dump({"predictions": predictions,
                       **time_dict,
