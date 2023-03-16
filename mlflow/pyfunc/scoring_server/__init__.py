@@ -288,7 +288,7 @@ def init(model: PyFuncModel):
                 status=415,
                 mimetype="text/plain",
             )
-        time_dict['json_to_pd_time'] = time.process_time() - parse_json_time
+        time_dict['json_to_pd_time'] = (time.process_time() - parse_json_time) * 1000
         prediction_time = time.process_time()
         # Do the prediction
         try:
@@ -305,7 +305,7 @@ def init(model: PyFuncModel):
                 error_code=BAD_REQUEST,
                 stack_trace=traceback.format_exc(),
             )
-        time_dict['prediction_time'] = time.process_time() - prediction_time
+        time_dict['prediction_time'] = ( time.process_time() - prediction_time ) * 1000
         result = StringIO()
         predictions_to_json_with_start_time(raw_predictions, result, time_dict=time_dict)
         return flask.Response(response=result.getvalue(), status=200, mimetype="application/json")
