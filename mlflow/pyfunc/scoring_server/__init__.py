@@ -164,9 +164,7 @@ def predictions_to_json_with_start_time(raw_predictions, output, time_dict, meta
         raise MlflowException(
             "metadata cannot contain 'predictions' key", error_code=INVALID_PARAMETER_VALUE
         )
-    raw_prediction_conversion_time = time.process_time()
     predictions = _get_jsonable_obj(raw_predictions, pandas_orient="records")
-    time_dict["raw_prediction_conversion_time"] = ( time.process_time() - raw_prediction_conversion_time) * 1000
     time_dict["end_time"] = str(datetime.datetime.now())
     return json.dump({"predictions": predictions,
                       **time_dict,
@@ -271,7 +269,7 @@ def init(model: PyFuncModel):
                 status=415,
                 mimetype="text/plain",
             )
-        parse_json_time = time.process_time()
+        time_dict['json_to_pd_start_time'] = str(datetime.datetime.now())
         # Convert from CSV to pandas
         if mime_type == CONTENT_TYPE_CSV:
             data = flask.request.data.decode("utf-8")
@@ -290,8 +288,7 @@ def init(model: PyFuncModel):
                 status=415,
                 mimetype="text/plain",
             )
-        time_dict['json_to_pd_time'] = (time.process_time() - parse_json_time) * 1000
-        prediction_time = time.process_time()
+        time_dict['json_to_pd_end_time_and_prediction_start_time'] = str(datetime.datetime.now())
         # Do the prediction
         try:
             raw_predictions = model.predict(data)
@@ -307,7 +304,7 @@ def init(model: PyFuncModel):
                 error_code=BAD_REQUEST,
                 stack_trace=traceback.format_exc(),
             )
-        time_dict['prediction_time'] = ( time.process_time() - prediction_time ) * 1000
+        time_dict['prediction_end_time_and_raw_prediction_conversion_start_time'] = str(datetime.datetime.now())
         result = StringIO()
         predictions_to_json_with_start_time(raw_predictions, result, time_dict=time_dict)
         return flask.Response(response=result.getvalue(), status=200, mimetype="application/json")
