@@ -239,8 +239,15 @@ def cast_df_types_according_to_schema(pdf, schema):
                     # The conversion will be done in `_enforce_schema` while
                     # `PyFuncModel.predict` being called.
                     pass
+                elif col_type == np.dtype(bool):
+                    pdf[col_name] = pdf[col_name].astype(bool, copy=False)
+                elif col_type == np.dtype('datetime64[ns]'):
+                    pdf[col_name] = pdf[col_name].astype(np.dtype("datetime64[ns]"), copy=False)
+                elif col_type == np.dtype(str):
+                    pdf[col_name] = pdf[col_name].astype(str, copy=False)
                 else:
-                    pdf[col_name] = pdf[col_name].astype(col_type, copy=False)
+                    # pdf[col_name] = pdf[col_name].astype(col_type, copy=False)
+                    pass
             except Exception as ex:
                 raise MlflowFailedTypeConversion(col_name, col_type, ex)
     return pdf
@@ -308,8 +315,8 @@ def dataframe_from_parsed_json(decoded_input, pandas_orient, schema=None):
                 f"Provided dataframe_split field is not a valid dataframe representation in "
                 f"'split' format. Error: '{ex}'"
             )
-    # if schema is not None:
-    #     pdf = cast_df_types_according_to_schema(pdf, schema)
+    if schema is not None:
+        pdf = cast_df_types_according_to_schema(pdf, schema)
 
 
 def dataframe_from_raw_json(path_or_str, schema=None, pandas_orient: str = "split"):
